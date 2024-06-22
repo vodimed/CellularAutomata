@@ -22,6 +22,15 @@ public abstract class CellularModel {
         }
     }
 
+    public static int pow2(int value) {
+        int mask = 1;
+        while (value != 0) {
+            value &= ~mask;
+            mask <<= 1;
+        }
+        return mask;
+    }
+
     protected abstract byte get(int pos);
 
     public void calculate(int line) {

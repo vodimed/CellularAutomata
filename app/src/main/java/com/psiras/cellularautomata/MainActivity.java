@@ -73,7 +73,7 @@ public class MainActivity extends Activity {
                 final Rect frame = holder.getSurfaceFrame();
                 final int height = Math.abs(frame.bottom - frame.top);
                 final int width = Math.abs(frame.right - frame.left);
-                final int square = Math.min(height, width) / scale;
+                final int square = CellularModel.pow2(Math.min(height, width) / scale) >> 1;
                 executor.setModel(new IllnessTemplate(square, square));
                 executor.start();
             }
@@ -97,19 +97,18 @@ public class MainActivity extends Activity {
             background = true;
         }
 
-        protected void paint(Canvas canvas) {
+        private void paint_snapshot(Canvas canvas, byte[] snapshot, int height, int width, final int base) {
             canvas.drawARGB(255, 255, 255, 255);
-            final CellularModel model = executor.getModel();
-            final int base = executor.baseline();
+            final int margin = (canvas.getWidth() - width * scale) >> 1;
             int count = 0;
 
-            for (int h = 0; h < model.height; ++h) {
-                final int row = (base + h) * model.width;
+            for (int h = 0; h < height; ++h) {
+                final int row = (base + h) * width;
 
-                for (int w = 0; w < model.width; ++w) {
-                    if (model.memory[row + w] <= 0) continue;
-                    array[count++] = w * scale;
-                    array[count++] = h * scale;
+                for (int w = 0; w < width; ++w) {
+                    if (snapshot[row + w] <= 0) continue;
+                    array[count++] = margin + w * scale;
+                    array[count++] = margin + h * scale;
 
                     if (count >= array.length) {
                         canvas.drawPoints(array, 0, count, pencil);
@@ -118,6 +117,11 @@ public class MainActivity extends Activity {
                 }
             }
             canvas.drawPoints(array, 0, count, pencil);
+        }
+
+        protected void paint(Canvas canvas) {
+            final CellularModel model = executor.getModel();
+            paint_snapshot(canvas, model.memory, model.height, model.width, executor.baseline());
         }
 
         @Override
@@ -145,7 +149,10 @@ public class MainActivity extends Activity {
                 }
 
                 if (canvas != null) {
-                    paint(canvas);
+                    final byte[] snapshot = executor.snapshot();
+                    final CellularModel model = executor.getModel();
+                    paint_snapshot(canvas, snapshot, model.height, model.width, 0);
+                    //paint(canvas);
                     holder.unlockCanvasAndPost(canvas);
                 } else {
                     surfaceDestroyed(holder);
