@@ -4,6 +4,8 @@ import com.psiras.cellularautomata.model.CellularModel;
 import com.psiras.cellularautomata.model.ModelExecutor;
 import com.psiras.cellularautomata.model.ThreadExecutor;
 import com.psiras.cellularautomata.template.IllnessTemplate;
+import com.psiras.cellularautomata.utils.Bitwise;
+import com.psiras.cellularautomata.utils.FFT;
 
 import java.awt.BasicStroke;
 import java.awt.Canvas;
@@ -20,8 +22,28 @@ import java.awt.event.WindowEvent;
 
 public class Main {
     public static void main(String[] args) {
-        final Main main = new Main();
-        main.init();
+        final byte[] r = new byte[]{0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
+        final byte[] q = new byte[]{0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
+        FFT.fftr_(r);
+        FFT.fftr(q);
+
+//        final int rows = 7;
+//        final int cols = 2;
+//        for (int i = 0; i < rows; ++i) {
+//            for (int j = 0; j < cols; ++j) {
+//                System.out.println(String.valueOf(j * rows + i) + " = " + String.valueOf(i * cols + j));
+//            }
+//        }
+
+        final int n = 16;
+        int prev = n;
+        for (int i = 0; i < n; ++i) {
+            prev = Bitwise.tree_next(n - 1, n / 2, prev);
+            System.out.println(i + " " + prev);
+        }
+
+        //final Main main = new Main();
+        //main.init();
     }
 
     public void init() {
@@ -60,7 +82,7 @@ public class Main {
             addMouseMotionListener(new MouseAdapter(){});
 
             final Dimension dim = getSize();
-            final int square = CellularModel.pow2(Math.min(dim.height, dim.width) / scale) >> 1;
+            final int square = Bitwise.rndpow2(Math.min(dim.height, dim.width) / scale) >>> 1;
             executor.setModel(new IllnessTemplate(square, square));
             executor.start();
             painter.start();
@@ -72,7 +94,7 @@ public class Main {
         }
 
         private void paint_snapshot(Graphics canvas, byte[] snapshot, int height, int width, final int base) {
-            final int margin = (getWidth() - width * scale) >> 1;
+            final int margin = (getWidth() - width * scale) >>> 1;
 
             for (int h = 0; h < height; ++h) {
                 canvas.clearRect(margin, margin + h * scale, width * scale, scale);

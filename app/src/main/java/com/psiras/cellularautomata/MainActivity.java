@@ -17,6 +17,7 @@ import com.psiras.cellularautomata.model.CellularModel;
 import com.psiras.cellularautomata.model.ModelExecutor;
 import com.psiras.cellularautomata.model.ThreadExecutor;
 import com.psiras.cellularautomata.template.IllnessTemplate;
+import com.psiras.cellularautomata.utils.FFT;
 
 public class MainActivity extends Activity {
     @Override
@@ -73,7 +74,7 @@ public class MainActivity extends Activity {
                 final Rect frame = holder.getSurfaceFrame();
                 final int height = Math.abs(frame.bottom - frame.top);
                 final int width = Math.abs(frame.right - frame.left);
-                final int square = CellularModel.pow2(Math.min(height, width) / scale) >> 1;
+                final int square = FFT.rndpow2(Math.min(height, width) / scale) >> 1;
                 executor.setModel(new IllnessTemplate(square, square));
                 executor.start();
             }
