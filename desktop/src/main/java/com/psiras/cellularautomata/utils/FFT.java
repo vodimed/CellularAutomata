@@ -28,7 +28,12 @@ public class FFT {
         final Complex[] stack = fft_stack(check_dimension(x.length, dim));
 
         for (int i = 0, step = 1; i < dim.length; step *= dim[i++]) {
-            fft_kernel(x, x, 0, step, dim[i], stack);
+            final int rows = x.length / dim[i];
+            final int cols = (i == 0 ? dim[i] : 1);
+
+            for (int j = 0; j < rows; ++j) {
+                fft_kernel(x, x, j * cols, step, dim[i], stack);
+            }
         }
         return x;
     }
@@ -46,7 +51,12 @@ public class FFT {
         final Complex[] stack = fft_stack(check_dimension(x.length, dim));
 
         for (int i = 0, step = 1; i < dim.length; step *= dim[i++]) {
-            ifft_kernel(x, x, 0, step, dim[i], stack);
+            final int rows = x.length / dim[i];
+            final int cols = (i == 0 ? dim[i] : 1);
+
+            for (int j = 0; j < rows; ++j) {
+                ifft_kernel(x, x, j * cols, step, dim[i], stack);
+            }
         }
         return x;
     }
