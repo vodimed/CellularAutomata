@@ -22,8 +22,8 @@ import java.awt.event.WindowEvent;
 
 public class Main {
     public static void main(String[] args) {
-        //final Main main = new Main();
-        //main.init();
+        final Main main = new Main();
+        main.init();
     }
 
     public void init() {
@@ -75,6 +75,8 @@ public class Main {
 
         private void paint_snapshot(Graphics canvas, byte[] snapshot, int height, int width, final int base) {
             final int margin = (getWidth() - width * scale) >>> 1;
+
+            //FFT.image_fft(snapshot, width);
 
             for (int h = 0; h < height; ++h) {
                 canvas.clearRect(margin, margin + h * scale, width * scale, scale);

@@ -18,7 +18,6 @@ import com.psiras.cellularautomata.model.ModelExecutor;
 import com.psiras.cellularautomata.model.ThreadExecutor;
 import com.psiras.cellularautomata.template.IllnessTemplate;
 import com.psiras.cellularautomata.utils.Bitwise;
-import com.psiras.cellularautomata.utils.FFT;
 
 public class MainActivity extends Activity {
     @Override
