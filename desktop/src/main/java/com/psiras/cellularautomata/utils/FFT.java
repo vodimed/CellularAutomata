@@ -9,35 +9,50 @@ public class FFT {
     private FFT() {
     }
 
-//    public static void fftr(byte[] x) {
-//        Complex[] z = new Complex[x.length];
-//
-//        for (int i = 0; i < x.length; ++i)
-//            z[i] = new Complex(x[i], (byte)0);
-//
-//        fft_kernel(z, z, 0, 1, z.length, null);
-//
-//        for (int i = 0; i < x.length; ++i)
-//            x[i] = z[i].re();
-//    }
+    public static byte[] image_fft(byte[] x, int width) {
+        final Complex[] z = new Complex[x.length];
 
-//    public static Complex[] fftn(Complex[] x, int... dim) {
-//        for (int d = 0; d < dimlength.length; ++d) {
-//        }
-//    }
-//
-//    public static Complex[] fft2(Complex[] x, int width) {
-//        final int height = x.length / width;
-//        if (height * width != x.length) throw new IllegalArgumentException("Dimensions don't agree");
-//        final Complex[] z = new Complex[x.length];
-//
-//        for (int h = 0; h < height; ++h) {
-//        }
-//    }
+        for (int i = 0; i < x.length; ++i) {
+            z[i] = new Complex(x[i], (byte) 0);
+        }
+
+        fft2(z, width);
+
+        for (int i = 0; i < x.length; ++i) {
+            x[i] = z[i].re();
+        }
+        return x;
+    }
+
+    public static Complex[] fftn(Complex[] x, int... dim) {
+        final Complex[] stack = fft_stack(check_dimension(x.length, dim));
+
+        for (int i = 0, step = 1; i < dim.length; step *= dim[i++]) {
+            fft_kernel(x, x, 0, step, dim[i], stack);
+        }
+        return x;
+    }
+
+    public static Complex[] fft2(Complex[] x, int width) {
+        return fftn(x, width, x.length / width);
+    }
 
     public static Complex[] fft(Complex[] x) {
         fft_kernel(x, x, 0, 1, x.length, null);
         return x;
+    }
+
+    public static Complex[] ifftn(Complex[] x, int... dim) {
+        final Complex[] stack = fft_stack(check_dimension(x.length, dim));
+
+        for (int i = 0, step = 1; i < dim.length; step *= dim[i++]) {
+            ifft_kernel(x, x, 0, step, dim[i], stack);
+        }
+        return x;
+    }
+
+    public static Complex[] ifft2(Complex[] x, int width) {
+        return ifftn(x, width, x.length / width);
     }
 
     public static Complex[] ifft(Complex[] x) {
@@ -61,6 +76,19 @@ public class FFT {
         System.arraycopy(x, 0, wider, 0, x.length);
         Arrays.fill(wider, x.length, (x.length << 1), ZERO);
         return wider;
+    }
+
+    private static int check_dimension(int length, int[] dim) {
+        int maxdim = 0;
+        int size = 1;
+
+        for (int i = 0; i < dim.length; ++i) {
+            if (maxdim < dim[i]) maxdim = dim[i];
+            size *= dim[i];
+        }
+
+        if (size != length) throw new IllegalArgumentException("Dimensions don't agree");
+        return maxdim;
     }
 
     protected static void convolve_kernel(Complex[] x, Complex[] y, int start, int step, int count, Complex[] stack) {

@@ -22,26 +22,6 @@ import java.awt.event.WindowEvent;
 
 public class Main {
     public static void main(String[] args) {
-        final byte[] r = new byte[]{0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
-        final byte[] q = new byte[]{0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
-        FFT.fftr_(r);
-        FFT.fftr(q);
-
-//        final int rows = 7;
-//        final int cols = 2;
-//        for (int i = 0; i < rows; ++i) {
-//            for (int j = 0; j < cols; ++j) {
-//                System.out.println(String.valueOf(j * rows + i) + " = " + String.valueOf(i * cols + j));
-//            }
-//        }
-
-        final int n = 16;
-        int prev = n;
-        for (int i = 0; i < n; ++i) {
-            prev = Bitwise.tree_next(n - 1, n / 2, prev);
-            System.out.println(i + " " + prev);
-        }
-
         //final Main main = new Main();
         //main.init();
     }
