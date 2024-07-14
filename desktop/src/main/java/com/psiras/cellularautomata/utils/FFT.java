@@ -3,7 +3,7 @@ package com.psiras.cellularautomata.utils;
 import java.util.Arrays;
 
 public class FFT {
-    private static final Complex ZERO = new Complex((byte)0, (byte)0);
+    private static final Complex ZERO = new Complex(0.0f, 0.0f);
 
     // Do not instantiate
     private FFT() {
@@ -13,13 +13,13 @@ public class FFT {
         final Complex[] z = new Complex[x.length];
 
         for (int i = 0; i < x.length; ++i) {
-            z[i] = new Complex(x[i], (byte) 0);
+            z[i] = new Complex(x[i], 0.0f);
         }
 
         fft2(z, width);
 
         for (int i = 0; i < x.length; ++i) {
-            x[i] = z[i].re();
+            x[i] = (byte)Math.min(z[i].abs(), Byte.MAX_VALUE);
         }
         return x;
     }
@@ -163,7 +163,7 @@ public class FFT {
                 final int k = start + (position << 1) + step;
                 final int n = start + position;
 
-                final Complex wi = new Complex((byte)Math.cos(ith), (byte)Math.sin(ith)).times(y[k]);
+                final Complex wi = new Complex((float)Math.cos(ith), (float)Math.sin(ith)).times(y[k]);
                 final Complex yk = parent;
 
                 stack[level] = y[n + halfgap];
@@ -204,7 +204,7 @@ public class FFT {
 //
 //        for (int k = 0; k < (n >>> 1); ++k) {
 //            final double kth = k * th;
-//            final Complex wk = new Complex((byte)Math.cos(kth), (byte)Math.sin(kth)).times(r[k]);
+//            final Complex wk = new Complex(Math.cos(kth), Math.sin(kth)).times(r[k]);
 //
 //            y[k + halfgap] = q[k].minus(wk);
 //            y[k] = q[k].plus(wk);
