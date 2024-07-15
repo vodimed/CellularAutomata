@@ -77,7 +77,7 @@ public class Main {
         private void paint_snapshot(Graphics canvas, byte[] snapshot, int height, int width, final int base) {
             final int margin = (getWidth() - width * scale) >>> 1;
 
-            FFT.image_fft(snapshot, width);
+            FFT.image_fft(snapshot, width, false);
 
             for (int h = 0; h < height; ++h) {
                 canvas.clearRect(margin, margin + h * scale, width * scale, scale);
@@ -96,7 +96,7 @@ public class Main {
             Arrays.fill(executor.getModel().memory, (byte)1);
             executor.getModel().erase(250 / scale, 250 / scale, 250 / scale, 250 / scale, 10);
             final byte[] snapshot = executor.snapshot();
-            for (int i = 0; i < snapshot.length; ++i) snapshot[i] = (byte)(1 - snapshot[i]);
+            //for (int i = 0; i < snapshot.length; ++i) snapshot[i] = (byte)(1 - snapshot[i]);
             final CellularModel model = executor.getModel();
             paint_snapshot(canvas, snapshot, model.height, model.width, 0);
 

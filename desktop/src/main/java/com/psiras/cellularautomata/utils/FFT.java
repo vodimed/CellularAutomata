@@ -4,12 +4,13 @@ import java.util.Arrays;
 
 public class FFT {
     private static final Complex ZERO = new Complex(0.0f, 0.0f);
+    private static final int imagefltrate = 4;
 
     // Do not instantiate
     private FFT() {
     }
 
-    public static byte[] image_fft(byte[] x, int width) {
+    public static byte[] image_fft(byte[] x, int width, boolean positive) {
         final Complex[] z = new Complex[x.length];
 
         for (int i = 0; i < x.length; ++i) {
@@ -18,19 +19,21 @@ public class FFT {
 
         fft2(z, width);
         fftshift2(z, width);
+        final float filter = (float)Math.sqrt(x.length) * imagefltrate;
         double scale = 1.0;
 
         for (int i = 0; i < x.length; ++i) {
-            //scale += z[i].abs2();
+            final float distance2 = z[i].abs2();
+            scale += Math.min(distance2, filter);
         }
-
-        scale = Math.sqrt(scale / x.length); // middle
+        scale = Math.sqrt(scale / x.length); // about middle
+        final int shift = (positive ? 0 : Byte.MAX_VALUE);
+        final int range = ((int)Byte.MAX_VALUE + shift);
+        final float tobyte = (float)((Byte.MAX_VALUE + shift) / (scale * 2));
 
         for (int i = 0; i < x.length; ++i) {
-            float value = (float) ((z[i].abs() - scale) * scale);
-            if (value > 1.0f) value = 1.0f;
-            if (value < -1.0f) value = -1.0f;
-            x[i] = (byte) (value * Byte.MAX_VALUE);
+            float value = Math.min(z[i].abs() * tobyte, range);
+            x[i] = (byte)(value - shift);
         }
         return x;
     }
