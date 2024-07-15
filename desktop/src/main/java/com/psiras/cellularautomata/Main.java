@@ -65,8 +65,8 @@ public class Main {
             final Dimension dim = getSize();
             final int square = Bitwise.rndpow2(Math.min(dim.height, dim.width) / scale) >>> 1;
             executor.setModel(new IllnessTemplate(square, square));
-            executor.start();
-            painter.start();
+            //executor.start();
+            //painter.start();
         }
 
         public void terminate() {
@@ -84,7 +84,7 @@ public class Main {
                 final int row = (base + h) * width;
 
                 for (int w = 0; w < width; ++w) {
-                    if (snapshot[row + w] <= 65) continue;
+                    if (snapshot[row + w] <= 0) continue;
                     canvas.fillRect(margin + w * scale, margin + h * scale, scale, scale);
                 }
             }
@@ -92,6 +92,14 @@ public class Main {
 
         @Override
         public void paint(Graphics canvas) {
+            //TODO: del
+            Arrays.fill(executor.getModel().memory, (byte)1);
+            executor.getModel().erase(250 / scale, 250 / scale, 250 / scale, 250 / scale, 10);
+            final byte[] snapshot = executor.snapshot();
+            for (int i = 0; i < snapshot.length; ++i) snapshot[i] = (byte)(1 - snapshot[i]);
+            final CellularModel model = executor.getModel();
+            paint_snapshot(canvas, snapshot, model.height, model.width, 0);
+
             //final CellularModel model = executor.getModel();
             //paint_snapshot(canvas, model.memory, model.height, model.width, executor.baseline());
         }

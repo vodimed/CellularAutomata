@@ -29,6 +29,10 @@ public class Complex {
         return (float)Math.sqrt(re * re + im * im);
     }
 
+    public float abs2() {
+        return (re * re + im * im);
+    }
+
     public float phase() {
         return (float)Math.atan2(im, re);
     }

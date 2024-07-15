@@ -17,9 +17,43 @@ public class FFT {
         }
 
         fft2(z, width);
+        fftshift2(z, width);
+        double scale = 1.0;
 
         for (int i = 0; i < x.length; ++i) {
-            x[i] = (byte)Math.min(z[i].abs(), Byte.MAX_VALUE);
+            //scale += z[i].abs2();
+        }
+
+        scale = Math.sqrt(scale / x.length); // middle
+
+        for (int i = 0; i < x.length; ++i) {
+            float value = (float) ((z[i].abs() - scale) * scale);
+            if (value > 1.0f) value = 1.0f;
+            if (value < -1.0f) value = -1.0f;
+            x[i] = (byte) (value * Byte.MAX_VALUE);
+        }
+        return x;
+    }
+
+    public static Complex[] fftshift2(Complex[] x, int width) {
+        return fftshiftn(x, width, x.length / width);
+    }
+
+    public static Complex[] fftshiftn(Complex[] x, int... dim) {
+        final int half = (x.length >>> 1);
+        int shift = 0;
+
+        for (int i = 0; i < dim.length; ++i) {
+            final int dh = (dim[i] >>> 1);
+            shift <<= Bitwise.log2(dh) + 1;
+            shift += dh;
+        }
+
+        for (int i = 0; i < half; ++i) {
+            final int j = (i ^ shift);
+            final Complex swap = x[i];
+            x[i] = x[j];
+            x[j] = swap;
         }
         return x;
     }
