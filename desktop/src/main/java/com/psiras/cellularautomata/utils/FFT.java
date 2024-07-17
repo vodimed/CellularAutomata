@@ -62,14 +62,16 @@ public class FFT {
     }
 
     public static Complex[] fftn(Complex[] x, int... dim) {
-        final Complex[] stack = fft_stack(check_dimension(x.length, dim));
+        final int maxsize = check_dimension(x.length, dim);
+        final Complex[] stack = fft_stack(maxsize);
+        final Complex[] pool = fft_pool(maxsize);
 
         for (int i = 0, step = 1; i < dim.length; step *= dim[i++]) {
             final int rows = x.length / dim[i];
             final int cols = (i == 0 ? dim[i] : 1);
 
             for (int j = 0; j < rows; ++j) {
-                fft_kernel(x, x, j * cols, step, dim[i], stack);
+                fft_kernel(x, x, j * cols, step, dim[i], stack, pool);
             }
         }
         return x;
@@ -80,19 +82,21 @@ public class FFT {
     }
 
     public static Complex[] fft(Complex[] x) {
-        fft_kernel(x, x, 0, 1, x.length, null);
+        fft_kernel(x, x, 0, 1, x.length, null, null);
         return x;
     }
 
     public static Complex[] ifftn(Complex[] x, int... dim) {
-        final Complex[] stack = fft_stack(check_dimension(x.length, dim));
+        final int maxsize = check_dimension(x.length, dim);
+        final Complex[] stack = fft_stack(maxsize);
+        final Complex[] pool = fft_pool(maxsize);
 
         for (int i = 0, step = 1; i < dim.length; step *= dim[i++]) {
             final int rows = x.length / dim[i];
             final int cols = (i == 0 ? dim[i] : 1);
 
             for (int j = 0; j < rows; ++j) {
-                ifft_kernel(x, x, j * cols, step, dim[i], stack);
+                ifft_kernel(x, x, j * cols, step, dim[i], stack, pool);
             }
         }
         return x;
@@ -103,19 +107,23 @@ public class FFT {
     }
 
     public static Complex[] ifft(Complex[] x) {
-        ifft_kernel(x, x, 0, 1, x.length, null);
+        ifft_kernel(x, x, 0, 1, x.length, null, null);
         return x;
     }
 
     public static Complex[] convolve(Complex[] x, Complex[] y, boolean padzeroes) {
         if (padzeroes) x = convolve_array(x);
         if (padzeroes) y = convolve_array(y);
-        convolve_kernel(x, y, 0, 1, x.length, null);
+        convolve_kernel(x, y, 0, 1, x.length, null, null);
         return y;
     }
 
     public static Complex[] fft_stack(int count) {
         return new Complex[Bitwise.log2(count >>> 2) + 1];
+    }
+
+    public static Complex[] fft_pool(int count) {
+        return new Complex[count >>> 2];
     }
 
     private static Complex[] convolve_array(Complex[] x) {
@@ -138,22 +146,23 @@ public class FFT {
         return maxdim;
     }
 
-    protected static void convolve_kernel(Complex[] x, Complex[] y, int start, int step, int count, Complex[] stack) {
+    protected static void convolve_kernel(Complex[] x, Complex[] y, int start, int step, int count, Complex[] stack, Complex[] pool) {
         if (y.length != x.length) throw new IllegalArgumentException("Dimensions don't agree");
         if (stack == null) stack = fft_stack(count);
+        if (pool == null) pool = fft_pool(count);
 
         // compute FFT of each sequence
-        fft_kernel(x, x, start, step, count, stack);
-        fft_kernel(y, y, start, step, count, stack);
+        fft_kernel(x, x, start, step, count, stack, pool);
+        fft_kernel(y, y, start, step, count, stack, pool);
 
         // point-wise multiply
         for (int i = start; i < count; i += step) {
             y[i] = y[i].times(x[i]);
         }
-        ifft_kernel(y, y, start, step, count, stack);
+        ifft_kernel(y, y, start, step, count, stack, pool);
     }
 
-    protected static void ifft_kernel(Complex[] x, Complex[] y, int start, int step, int count, Complex[] stack) {
+    protected static void ifft_kernel(Complex[] x, Complex[] y, int start, int step, int count, Complex[] stack, Complex[] pool) {
         if (y.length != x.length) throw new IllegalArgumentException("Dimensions don't agree");
         final float div = 1.0f / count;
 
@@ -163,7 +172,7 @@ public class FFT {
         }
 
         // compute forward FFT
-        fft_kernel(y, y, start, step, count, stack);
+        fft_kernel(y, y, start, step, count, stack, pool);
 
         // take conjugate again
         for (int i = start; i < count; i += step) {
@@ -171,23 +180,36 @@ public class FFT {
         }
     }
 
-    protected static void fft_kernel(Complex[] x, Complex[] y, int start, int step, int count, Complex[] stack) {
+    protected static void fft_kernel(Complex[] x, Complex[] y, int start, int step, int count, Complex[] stack, Complex[] pool) {
         if (y.length != x.length) throw new IllegalArgumentException("Dimensions don't agree");
-        if (count == 1) {y[0] = x[0]; return;}
+        if (count == 1) {
+            y[start] = x[start];
+            return;
+        }
         if ((count % 2) != 0) throw new IllegalArgumentException("n is not a power of 2");
 
-        if (stack == null) stack = fft_stack(count);
         final int half = (count >>> 1);
+        final int poolsize = (count >>> 2);
+        final boolean usepool = (poolsize > 0) && (y == x);
+        if (stack == null) stack = fft_stack(count);
+        if ((pool == null) && usepool) pool = fft_pool(count);
 
-        fft_kernel(x, y, start, step << 1, half, stack); // even terms
-        fft_kernel(x, y, start + step, step << 1, half, stack); // odd terms
+        fft_kernel(x, y, start, step << 1, half, stack, pool); // even terms
+        fft_kernel(x, y, start + step, step << 1, half, stack, pool); // odd terms
 
         // combine
         final int decn = (count - 1);
         final int dech = (half - 1);
         final double th = -Math.PI / half;
         final int halfgap = step * half;
-        Complex parent = y[start];
+        Complex parent = x[start];
+
+        if (usepool) {
+            final int poolstep = (step << 2);
+            for (int i = 0, it = start + step; i < poolsize; ++i, it += poolstep) {
+                pool[i] = x[it];
+            }
+        }
 
         for (int it = count; it != decn; it = Bitwise.tree_next(decn, half, it)) {
             final int level = Bitwise.trailing(it & dech);
@@ -196,56 +218,91 @@ public class FFT {
             if (i < half) {
                 final double ith = i * th;
                 final int position = i * step;
-
                 final int k = start + (position << 1) + step;
                 final int n = start + position;
 
-                final Complex wi = new Complex((float)Math.cos(ith), (float)Math.sin(ith)).times(y[k]);
-                final Complex yk = parent;
+                final Complex xkk = (usepool && (((i << 1) & 0x3) == 0) ? pool[i >>> 1] : x[k]);
+                final Complex wi = new Complex((float)Math.cos(ith), (float)Math.sin(ith)).times(xkk);
+                final Complex xk = parent;
 
-                stack[level] = y[n + halfgap];
-                y[n + halfgap] = yk.minus(wi);
+                stack[level] = x[n + halfgap];
+                y[n + halfgap] = xk.minus(wi);
 
-                parent = y[n];
-                y[n] = yk.plus(wi);
+                parent = x[n];
+                y[n] = xk.plus(wi);
             } else {
                 parent = stack[level];
             }
         }
     }
 
-//    @Deprecated
-//    private static Complex[] fft_original(Complex[] x) {
-//        final int n = x.length;
-//        if (n == 1) return new Complex[]{x[0]};
-//        if ((n % 2) != 0) throw new IllegalArgumentException("n is not a power of 2");
-//
-//        // fft of even terms
-//        final Complex[] even = new Complex[n >>> 1];
-//        for (int k = 0; k < (n >>> 1); ++k) {
-//            even[k] = x[k << 1];
-//        }
-//        final Complex[] q = fft_original(even);
-//
-//        // fft of odd terms
-//        final Complex[] odd = even; // reuse the array
-//        for (int k = 0; k < (n >>> 1); ++k) {
-//            odd[k] = x[(k << 1) + 1];
-//        }
-//        final Complex[] r = fft_original(odd);
-//
-//        // combine
-//        final Complex[] y = new Complex[n];
-//        final double th = -2 * Math.PI / n;
-//        final int halfgap = (n >>> 1);
-//
-//        for (int k = 0; k < (n >>> 1); ++k) {
-//            final double kth = k * th;
-//            final Complex wk = new Complex(Math.cos(kth), Math.sin(kth)).times(r[k]);
-//
-//            y[k + halfgap] = q[k].minus(wk);
-//            y[k] = q[k].plus(wk);
-//        }
-//        return y;
-//    }
+    @Deprecated
+    private static Complex[] fft_slice(Complex[] x, int start, int step, int count) {
+        final Complex[] y = new Complex[count];
+        for (int i = 0; i < count; ++i) {
+            y[i] = x[start + i * step];
+        }
+        return y;
+    }
+
+    @Deprecated
+    private static void fft_apply(Complex[] x, Complex[] y, int start, int step, int count) {
+        for (int i = 0; i < count; ++i) {
+            x[start + i * step] = y[i];
+        }
+    }
+
+    @Deprecated
+    private static Complex[] fft2_original(Complex[] x, int width) {
+        return fftn_original(x, width, x.length / width);
+    }
+
+    @Deprecated
+    private static Complex[] fftn_original(Complex[] x, int... dim) {
+        for (int i = 0, step = 1; i < dim.length; step *= dim[i++]) {
+            final int rows = x.length / dim[i];
+            final int cols = (i == 0 ? dim[i] : 1);
+
+            for (int j = 0; j < rows; ++j) {
+                final Complex[] slice = fft_slice(x, j * cols, step, dim[i]);
+                fft_apply(x,  fft_original(slice), j * cols, step, dim[i]);
+            }
+        }
+        return x;
+    }
+
+    @Deprecated
+    private static Complex[] fft_original(Complex[] x) {
+        final int n = x.length;
+        if (n == 1) return new Complex[]{x[0]};
+        if ((n % 2) != 0) throw new IllegalArgumentException("n is not a power of 2");
+
+        // fft of even terms
+        final Complex[] even = new Complex[n >>> 1];
+        for (int k = 0; k < (n >>> 1); ++k) {
+            even[k] = x[k << 1];
+        }
+        final Complex[] q = fft_original(even);
+
+        // fft of odd terms
+        final Complex[] odd = even; // reuse the array
+        for (int k = 0; k < (n >>> 1); ++k) {
+            odd[k] = x[(k << 1) + 1];
+        }
+        final Complex[] r = fft_original(odd);
+
+        // combine
+        final Complex[] y = new Complex[n];
+        final double th = -2 * Math.PI / n;
+        final int halfgap = (n >>> 1);
+
+        for (int k = 0; k < (n >>> 1); ++k) {
+            final double kth = k * th;
+            final Complex wk = new Complex((float)Math.cos(kth), (float)Math.sin(kth)).times(r[k]);
+
+            y[k + halfgap] = q[k].minus(wk);
+            y[k] = q[k].plus(wk);
+        }
+        return y;
+    }
 }

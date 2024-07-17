@@ -85,6 +85,7 @@ public class Main {
 
                 for (int w = 0; w < width; ++w) {
                     if (snapshot[row + w] <= 0) continue;
+                    //canvas.setColor(new Color(Math.max(0, snapshot[row + w]), Math.max(0, snapshot[row + w]), Math.max(0, -snapshot[row + w])));
                     canvas.fillRect(margin + w * scale, margin + h * scale, scale, scale);
                 }
             }
@@ -96,7 +97,7 @@ public class Main {
             Arrays.fill(executor.getModel().memory, (byte)1);
             executor.getModel().erase(250 / scale, 250 / scale, 250 / scale, 250 / scale, 10);
             final byte[] snapshot = executor.snapshot();
-            //for (int i = 0; i < snapshot.length; ++i) snapshot[i] = (byte)(1 - snapshot[i]);
+            for (int i = 0; i < snapshot.length; ++i) snapshot[i] = (byte)(1 - snapshot[i]);
             final CellularModel model = executor.getModel();
             paint_snapshot(canvas, snapshot, model.height, model.width, 0);
 
