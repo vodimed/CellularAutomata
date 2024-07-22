@@ -182,10 +182,7 @@ public class FFT {
 
     protected static void fft_kernel(Complex[] x, Complex[] y, int start, int step, int count, Complex[] stack, Complex[] pool) {
         if (y.length != x.length) throw new IllegalArgumentException("Dimensions don't agree");
-        if (count == 1) {
-            y[start] = x[start];
-            return;
-        }
+        if (count == 1) {y[start] = x[start]; return;}
         if ((count % 2) != 0) throw new IllegalArgumentException("n is not a power of 2");
 
         final int half = (count >>> 1);
@@ -205,6 +202,8 @@ public class FFT {
         Complex parent = x[start];
 
         if (usepool) {
+            //TODO: may be reduced to 1/8, draw tree with reverse references,
+            // we may keep previous level of right subtree instead odd values
             final int poolstep = (step << 2);
             for (int i = 0, it = start + step; i < poolsize; ++i, it += poolstep) {
                 pool[i] = x[it];
