@@ -204,6 +204,9 @@ public class FFT {
         if (usepool) {
             //TODO: may be reduced to 1/8, draw tree with reverse references,
             // we may keep previous level of right subtree instead odd values
+            // See also 0 memory algorithm with different recursion tree in:
+            // arXiv:1001.5272v1 -- D. Harvey, D. Roche: An in-place truncated
+            // Fourier transform and applications to polynomial multiplication
             final int poolstep = (step << 2);
             for (int i = 0, it = start + step; i < poolsize; ++i, it += poolstep) {
                 pool[i] = x[it];
