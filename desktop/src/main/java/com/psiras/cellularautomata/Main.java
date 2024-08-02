@@ -4,8 +4,8 @@ import com.psiras.cellularautomata.model.CellularModel;
 import com.psiras.cellularautomata.model.ModelExecutor;
 import com.psiras.cellularautomata.model.ThreadExecutor;
 import com.psiras.cellularautomata.template.IllnessTemplate;
+import com.psiras.cellularautomata.template.NeighborTemplate;
 import com.psiras.cellularautomata.utils.Bitwise;
-import com.psiras.cellularautomata.utils.FFT;
 
 import java.awt.BasicStroke;
 import java.awt.Canvas;
@@ -19,7 +19,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
@@ -49,7 +48,7 @@ public class Main {
         private static final int scale = 2;
         private static final Stroke pencil = new BasicStroke(scale);
         private final ThreadExecutor painter = new ThreadExecutor(this, 1);
-        private final ModelExecutor executor = new ModelExecutor(1.0f, 1);
+        private final ModelExecutor executor = new ModelExecutor(0.0f, 1);
         private boolean pressed = false;
         private int touchX = -1;
         private int touchY = -1;
@@ -64,7 +63,8 @@ public class Main {
 
             final Dimension dim = getSize();
             final int square = Bitwise.rndpow2(Math.min(dim.height, dim.width) / scale) >>> 1;
-            executor.setModel(new IllnessTemplate(square, square));
+            //executor.setModel(new IllnessTemplate(square, square));
+            executor.setModel(new NeighborTemplate(square, square));
             executor.start();
             painter.start();
         }

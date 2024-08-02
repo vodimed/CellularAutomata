@@ -23,6 +23,10 @@ public abstract class CellularModel {
 
     protected abstract byte get(int pos);
 
+    protected int pos_set(int pos) {
+        return (pos + height * width) % memory.length;
+    }
+
     public void calculate(int line) {
         final int h = line % height;
         final boolean body = ((h >= edge) && (h < height - edge));

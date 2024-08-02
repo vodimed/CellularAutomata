@@ -13,7 +13,7 @@ public class OregonatorTemplate extends CellularModel {
 //    private final float[] Y; // Br–1
 //    private final float[] Z; // Се4+
 
-    protected OregonatorTemplate(int height, int width) {
+    public OregonatorTemplate(int height, int width) {
         super(height, width, edge);
     }
 
