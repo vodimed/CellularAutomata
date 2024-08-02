@@ -5,7 +5,6 @@ import com.psiras.cellularautomata.model.CellularModel;
 public class IllnessTemplate extends CellularModel {
     private static final int range = 10;
     private static final int edge = 1;
-    private static final byte wall = -1;
     private static final byte[] mask;
 
     static {
@@ -25,14 +24,14 @@ public class IllnessTemplate extends CellularModel {
     }
 
     public IllnessTemplate(int height, int width) {
-        super(height, width, edge, wall);
+        super(height, width, edge);
     }
 
     @Override
     protected byte get(int pos) {
-        if (memory[pos] == wall) {
-            return wall;
-        } else if (memory[pos] == range - 1) {
+        if (memory[pos] == wall) return wall;
+
+        if (memory[pos] == range - 1) {
             return 0;
         } else {
             final int len = (edge << 1) + 1;

@@ -1,21 +1,20 @@
 package com.psiras.cellularautomata.model;
 
 public abstract class CellularModel {
-    public static final byte fr2n = 3;
-    public final int vertical;
+    protected static final byte wall = -1;
+    protected static final byte fr2n = 3;
+    protected final int edge;
+    protected final int vertical;
     public final byte[] memory;
     public final int height;
     public final int width;
-    public final int edge;
-    public final byte wall;
 
-    protected CellularModel(int height, int width, int edge, byte wall) {
+    protected CellularModel(int height, int width, int edge) {
+        this.edge = edge;
         this.vertical = (height << fr2n);
         this.memory = new byte[vertical * width];
         this.height = height;
         this.width = width;
-        this.edge = edge;
-        this.wall = wall;
 
         for (int i = 0; i < vertical * width; ++i) {
             memory[i] = (byte)(Math.random() * 127);
