@@ -5,7 +5,7 @@ plugins {
 android {
     signingConfigs {
         release {
-            storeFile file('/home/alex/StudioProjects/CellularAutomata/keystore.jks')
+            storeFile file('/home/alex/AndroidStudio/CellularAutomata/keystore.jks')
             storePassword 'expertek'
             keyAlias 'key0'
             keyPassword 'expertek'

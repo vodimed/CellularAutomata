@@ -17,6 +17,7 @@ import com.psiras.cellularautomata.model.CellularModel;
 import com.psiras.cellularautomata.model.ModelExecutor;
 import com.psiras.cellularautomata.model.ThreadExecutor;
 import com.psiras.cellularautomata.template.IllnessTemplate;
+import com.psiras.cellularautomata.template.NeighborTemplate;
 import com.psiras.cellularautomata.utils.Bitwise;
 
 public class MainActivity extends Activity {
@@ -75,7 +76,8 @@ public class MainActivity extends Activity {
                 final int height = Math.abs(frame.bottom - frame.top);
                 final int width = Math.abs(frame.right - frame.left);
                 final int square = Bitwise.rndpow2(Math.min(height, width) / scale) >> 1;
-                executor.setModel(new IllnessTemplate(square, square));
+                //executor.setModel(new IllnessTemplate(square, square));
+                executor.setModel(new NeighborTemplate(square, square));
                 executor.start();
             }
 

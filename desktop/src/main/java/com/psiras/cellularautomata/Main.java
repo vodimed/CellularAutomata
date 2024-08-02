@@ -48,7 +48,7 @@ public class Main {
         private static final int scale = 2;
         private static final Stroke pencil = new BasicStroke(scale);
         private final ThreadExecutor painter = new ThreadExecutor(this, 1);
-        private final ModelExecutor executor = new ModelExecutor(0.0f, 1);
+        private final ModelExecutor executor = new ModelExecutor(1.0f, 1);
         private boolean pressed = false;
         private int touchX = -1;
         private int touchY = -1;
